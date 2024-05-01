@@ -1,0 +1,72 @@
+import random
+from PIL import Image
+
+class JigsawPuzzle:
+    def __init__(self, image, size):
+        self.image = image
+        self.size = size
+        self.width, self.height = self.image.size
+        self.piece_width = self.width // size
+        self.piece_height = self.height // size
+        self.puzzle = self.create_puzzle()
+        self.position = (size - 1, size - 1)
+        self.shuffle()
+
+    def create_puzzle(self):
+        puzzle = []
+        for i in range(self.size):
+            row = []
+            for j in range(self.size):
+                left = j * self.piece_width
+                upper = i * self.piece_height
+                right = left + self.piece_width
+                lower = upper + self.piece_height
+                piece = self.image.crop((left, upper, right, lower))
+                row.append(piece)
+            puzzle.append(row)
+        puzzle[self.size - 1][self.size - 1] = Image.new('RGB', (self.piece_width, self.piece_height), (255, 255, 255))
+        return puzzle
+
+    def shuffle(self):
+        for _ in range(self.size ** 3):
+            moves = self.get_moves()
+            move = random.choice(moves)
+            self.move(move)
+
+    def get_moves(self):
+        moves = []
+        if self.position[0] > 0:
+            moves.append('up')
+        if self.position[0] < self.size - 1:
+            moves.append('down')
+        if self.position[1] > 0:
+            moves.append('left')
+        if self.position[1] < self.size - 1:
+            moves.append('right')
+        return moves
+
+    def move(self, direction):
+        x, y = self.position
+        if direction == 'up':
+            self.puzzle[x][y], self.puzzle[x - 1][y] = self.puzzle[x - 1][y], self.puzzle[x][y]
+            self.position = (x - 1, y)
+        elif direction == 'down':
+            self.puzzle[x][y], self.puzzle[x + 1][y] = self.puzzle[x + 1][y], self.puzzle[x][y]
+            self.position = (x + 1, y)
+        elif direction == 'left':
+            self.puzzle[x][y], self.puzzle[x][y - 1] = self.puzzle[x][y - 1], self.puzzle[x][y]
+            self.position = (x, y - 1)
+        elif direction == 'right':
+            self.puzzle[x][y], self.puzzle[x][y + 1] = self.puzzle[x][y + 1], self.puzzle[x][y]
+            self.position = (x, y + 1)
+
+    def display(self):
+        display_image = Image.new('RGB', (self.width, self.height))
+        for i in range(self.size):
+            for j in range(self.size):
+                display_image.paste(self.puzzle[i][j], (j * self.piece_width, i * self.piece_height))
+        display_image.show()
+
+    def is_solved(self):
+        return all(self.puzzle[i][j] == self.image.crop((j * self.piece_width, i * self.piece_height, (j + 1) * self.piece_width, (i + 1) * self.piece_height)) for i in range(self.size) for j in range(self.size - 1)) and \
+               self.puzzle[self.size - 1][self.size - 1] == Image.new('RGB', (self.piece_width, self.piece_height), (255, 255, 255))
