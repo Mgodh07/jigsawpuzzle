@@ -1,0 +1,7 @@
+if __name__ == "__main__":
+    root = tk.Tk()
+    image_url = "https://donnageorgeblog.files.wordpress.com/2015/03/jigsaw-puzzle-pieces.jpg"
+    response = requests.get(image_url)
+    image = Image.open(BytesIO(response.content))
+    puzzle_gui = PuzzleGUI(root, image, 3)
+    puzzle_gui.start()
